@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # --- BOT CONFIG ---
-BOT_TOKEN = "8464050626:AAHX3FrUO8-dyQGFKo8w8z435-4FsTlB8QQ"
+BOT_TOKEN = "8464050626:AAGVZG11RJ-oDW4OhWgUEM7oGr0TLX3Q9Yc"
 DOWNLOAD_DIR = "downloads"
 
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
