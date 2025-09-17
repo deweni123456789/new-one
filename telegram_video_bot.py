@@ -6,15 +6,13 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # --- BOT CONFIG ---
-BOT_TOKEN = "8464050626:AAGVZG11RJ-oDW4OhWgUEM7oGr0TLX3Q9Yc"
+BOT_TOKEN = os.getenv("BOT_TOKEN")  # Railway env variable
 DOWNLOAD_DIR = "downloads"
-
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 
 # --- Download Function ---
 def download_video(url: str) -> str:
-    """Download video from URL using yt-dlp and return file path."""
     ydl_opts = {
         "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title).80s.%(ext)s"),
         "format": "best[ext=mp4]/best",
@@ -22,13 +20,12 @@ def download_video(url: str) -> str:
         "quiet": True,
         "no_warnings": True,
     }
-
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         return ydl.prepare_filename(info)
 
 
-# --- Command Handlers ---
+# --- Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Send me a Facebook, Instagram, or YouTube link to download.")
 
@@ -45,7 +42,6 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         filepath = download_video(url)
 
-        # Check file size limit
         if os.path.getsize(filepath) > 2 * 1024 * 1024 * 1024:
             await update.message.reply_text("❌ File too large for Telegram (max 2GB).")
             os.remove(filepath)
@@ -58,10 +54,12 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"⚠️ Error: {str(e)}")
 
 
-# --- Main Function ---
+# --- Main ---
 def main():
-    app = Application.builder().token(BOT_TOKEN).build()
+    if not BOT_TOKEN:
+        raise RuntimeError("BOT_TOKEN not set in Railway environment variables!")
 
+    app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
 
